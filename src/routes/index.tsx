@@ -1,5 +1,6 @@
-import { AssistantChat } from '@/components/features/assistant-chat'
-import { UserChat } from '@/components/features/user-chat'
+import { AssistantChat } from '@/components/features/chat-ui/assistant-chat'
+import { SourceSelection } from '@/components/features/chat-ui/source-selection'
+import { UserChat } from '@/components/features/chat-ui/user-chat'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { createFileRoute } from '@tanstack/react-router'
@@ -48,14 +49,20 @@ function App() {
             })}
         </div>
         <div className="mb-4">
-          <form onSubmit={(e) => handleSubmit(e)} className="flex">
-            <Input
-              value={question}
-              onChange={(e) => handleTextChange(e)}
-              placeholder="Ask anything"
-              className="h-10 rounded-r-none"
-            />
-            <Button className="h-10 rounded-l-none flex items-center justify-center">
+          <form
+            onSubmit={(e) => handleSubmit(e)}
+            className="flex rounded-r-none"
+          >
+            <div className="flex flex-1 h-12 border p-1 rounded-md rounded-r-none">
+              <SourceSelection />
+              <Input
+                value={question}
+                onChange={(e) => handleTextChange(e)}
+                placeholder="Ask anything"
+                className="h-full border-none focus-visible:ring-0"
+              />
+            </div>
+            <Button className="h-12 rounded-l-none flex items-center justify-center">
               Send
             </Button>
           </form>
