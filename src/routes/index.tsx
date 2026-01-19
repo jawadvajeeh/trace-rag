@@ -3,10 +3,24 @@ import { SourceSelection } from '@/components/features/chat-ui/source-selection'
 import { UserChat } from '@/components/features/chat-ui/user-chat'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { fetchKnowledgeBase } from '@/db/dal'
 import { createFileRoute } from '@tanstack/react-router'
 import { ChangeEvent, FormEvent, useState } from 'react'
 
-export const Route = createFileRoute('/')({ component: App })
+export const Route = createFileRoute('/')({
+  component: App,
+  loader: async () => {
+    try {
+      const data = await fetchKnowledgeBase()
+      return { kbs: data, error: null }
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { kbs: [], error: error.message }
+      }
+      return { kbs: [], error: 'Something went wrong.' }
+    }
+  },
+})
 
 type UserChat = {
   prompt: string
@@ -22,9 +36,18 @@ type Chat = UserChat | AIChat
 function App() {
   const [question, setQuestion] = useState('')
   const [chats, setChats] = useState<Chat[]>([])
+  const { kbs } = Route.useLoaderData()
+  const [knowledge, setKnowledge] = useState<{
+    name: string
+    id: string
+  } | null>(null)
 
   function handleTextChange(e: ChangeEvent<HTMLInputElement>) {
     setQuestion(e.target.value)
+  }
+
+  function handleKnowledgeChange(kb: (typeof kbs)[0]) {
+    setKnowledge(kb)
   }
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -54,11 +77,16 @@ function App() {
             className="flex rounded-r-none"
           >
             <div className="flex flex-1 h-12 border p-1 rounded-md rounded-r-none">
-              <SourceSelection />
+              <SourceSelection
+                kbs={kbs}
+                handleKnowledgeChange={handleKnowledgeChange}
+              />
               <Input
                 value={question}
                 onChange={(e) => handleTextChange(e)}
-                placeholder="Ask anything"
+                placeholder={
+                  !knowledge ? `Ask anything` : `Ask about ${knowledge.name}`
+                }
                 className="h-full border-none focus-visible:ring-0"
               />
             </div>

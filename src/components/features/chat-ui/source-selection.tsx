@@ -8,17 +8,36 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Plus } from 'lucide-react'
+import { fetchKnowledgeBase } from '../../../db/dal'
 
-const SourceSelection = () => {
+type KBS = Awaited<ReturnType<typeof fetchKnowledgeBase>>
+
+type SourceSelectionProps = {
+  kbs: KBS
+  handleKnowledgeChange: (kb: KBS[number]) => void
+}
+
+const SourceSelection = ({
+  kbs,
+  handleKnowledgeChange,
+}: SourceSelectionProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuContent className="w-56" align="start">
         <DropdownMenuLabel>My Sources</DropdownMenuLabel>
         <DropdownMenuGroup>
-          <DropdownMenuItem>Profile</DropdownMenuItem>
-          <DropdownMenuItem>Billing</DropdownMenuItem>
-          <DropdownMenuItem>Settings</DropdownMenuItem>
-          <DropdownMenuItem>Keyboard shortcuts</DropdownMenuItem>
+          {kbs.length === 0 ? (
+            <div>Please add knowledgebases</div>
+          ) : (
+            kbs.map((kb) => (
+              <DropdownMenuItem
+                onSelect={() => handleKnowledgeChange(kb)}
+                key={kb.id}
+              >
+                {kb.name}
+              </DropdownMenuItem>
+            ))
+          )}
         </DropdownMenuGroup>
       </DropdownMenuContent>
       <DropdownMenuTrigger asChild>
