@@ -4,6 +4,7 @@ import { UserChat } from '@/components/features/chat-ui/user-chat'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { fetchKnowledgeBase } from '@/db/dal'
+import { askAI } from '@/lib/ai'
 import { createFileRoute } from '@tanstack/react-router'
 import { ChangeEvent, FormEvent, useState } from 'react'
 
@@ -26,9 +27,18 @@ type UserChat = {
   prompt: string
   role: 'User'
 }
-type AIChat = {
+export type AIChat = {
   role: 'Assistant'
-  response: string
+  response: {
+    answer: string
+    citations: number[]
+    sources: {
+      index: number
+      text: string
+      score: number
+    }[]
+    meta: { topScore: number }
+  }
 }
 
 type Chat = UserChat | AIChat
@@ -41,6 +51,7 @@ function App() {
     name: string
     id: string
   } | null>(null)
+  const [isAIThinking, setIsAIThinking] = useState(false)
 
   function handleTextChange(e: ChangeEvent<HTMLInputElement>) {
     setQuestion(e.target.value)
@@ -50,11 +61,23 @@ function App() {
     setKnowledge(kb)
   }
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (question !== '') {
-      setChats([...chats, { role: 'User', prompt: question }])
-      setQuestion('')
+    if (knowledge === null) return
+    const q = question.trim()
+    if (!q) return
+    setChats((prev) => [...prev, { role: 'User', prompt: q }])
+    setQuestion('')
+    try {
+      setIsAIThinking(true)
+      const response = await askAI({
+        data: { kbid: knowledge.id, question: q },
+      })
+      setChats((prev) => [...prev, { role: 'Assistant', response }])
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setIsAIThinking(false)
     }
   }
 
@@ -67,7 +90,10 @@ function App() {
               if (chat.role === 'User') {
                 return <UserChat prompt={chat.prompt} key={index} />
               } else {
-                return <AssistantChat key={index} />
+                if (isAIThinking) {
+                  return <span>...</span>
+                }
+                return <AssistantChat response={chat.response} key={index} />
               }
             })}
         </div>

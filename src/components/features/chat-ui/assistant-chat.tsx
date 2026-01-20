@@ -1,14 +1,20 @@
-const AssistantChat = () => {
+import { AIChat } from '@/routes'
+
+type AssistantChatProps = {
+  response: AIChat['response']
+}
+
+const AssistantChat = ({ response }: AssistantChatProps) => {
   return (
     <div className="md:max-w-2xl w-full  bg-gray-200 p-4 rounded-xl">
       <p className="font-semibold">AI</p>
-      <p className="text-sm">
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolorem ratione
-        ipsum sint in, consectetur, vitae at eveniet quas nulla enim magni,
-        mollitia officia nisi fuga praesentium nemo animi iste est!
-      </p>
+      <p className="text-sm">{response.answer}</p>
       <div className="flex justify-end">
-        <span>[1] [2]</span>
+        <p>
+          {response.citations.map((c, i) => (
+            <span key={i}>{`[${c}]`}</span>
+          ))}
+        </p>
       </div>
     </div>
   )
