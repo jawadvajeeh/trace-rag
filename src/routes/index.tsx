@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { fetchKnowledgeBase } from '@/db/dal'
 import { askAI } from '@/lib/ai'
 import { createFileRoute } from '@tanstack/react-router'
+import { MessageCircleX } from 'lucide-react'
 import { ChangeEvent, FormEvent, useState } from 'react'
 
 export const Route = createFileRoute('/')({
@@ -148,10 +149,26 @@ function App() {
     }
   }
 
+  function reset() {
+    setQuestion('')
+    setChats([])
+  }
+
   return (
     <main className="max-w-3xl mx-auto px-4">
-      <div className="flex flex-col h-screen">
+      <div className="flex flex-col h-screen ">
         <div className="chats flex-1 overflow-scroll no-scrollbar flex flex-col gap-4 my-4">
+          {chats.length === 0 && (
+            <div className="w-full  h-full flex justify-center items-center flex-col gap-2">
+              <h1 className="text-3xl font-black">
+                Ask <span className="text-blue-800">KnowledgeAI</span>
+              </h1>
+              <div className="text-center">
+                <p>Ask questions from the text you save.</p>
+                <p>Get grounded answers with sources you can verify.</p>
+              </div>
+            </div>
+          )}
           {chats.length > 0 &&
             chats.map((chat) => {
               if (chat.role === 'User') {
@@ -180,7 +197,19 @@ function App() {
               )
             })}
         </div>
-        <div className="mb-4">
+
+        <div className="mb-4 relative">
+          {chats.length > 0 && (
+            <Button
+              onClick={reset}
+              variant={`outline`}
+              size={`icon`}
+              className="rounded-full absolute left-1/2 -translate-x-1/2 -top-12"
+            >
+              <MessageCircleX />
+            </Button>
+          )}
+
           <form
             onSubmit={(e) => handleSubmit(e)}
             className="flex rounded-r-none"
