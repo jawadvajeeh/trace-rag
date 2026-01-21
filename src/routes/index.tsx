@@ -24,11 +24,22 @@ export const Route = createFileRoute('/')({
 })
 
 type UserChat = {
-  prompt: string
+  id: string
   role: 'User'
+  prompt: string
+  createdAt: number
 }
-export type AIChat = {
+type AssistantPendingChat = {
+  id: string
   role: 'Assistant'
+  status: 'pending'
+  createdAt: number
+}
+export type AssistantDoneChat = {
+  id: string
+  role: 'Assistant'
+  status: 'done'
+  createdAt: number
   response: {
     answer: string
     citations: number[]
@@ -41,7 +52,19 @@ export type AIChat = {
   }
 }
 
-type Chat = UserChat | AIChat
+type AssistantErrorChat = {
+  id: string
+  role: 'Assistant'
+  status: 'error'
+  createdAt: number
+  errorMessage: string
+}
+
+type Chat =
+  | UserChat
+  | AssistantPendingChat
+  | AssistantDoneChat
+  | AssistantErrorChat
 
 function App() {
   const [question, setQuestion] = useState('')
@@ -63,19 +86,63 @@ function App() {
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (knowledge === null) return
+    if (knowledge === null || isAIThinking) return
     const q = question.trim()
     if (!q) return
-    setChats((prev) => [...prev, { role: 'User', prompt: q }])
+    const now = Date.now()
+    const userId = crypto.randomUUID()
+    const assistantId = crypto.randomUUID()
+    setChats((prev) => [
+      ...prev,
+      { role: 'User', prompt: q, createdAt: now, id: userId },
+      {
+        role: 'Assistant',
+        status: 'pending',
+        createdAt: now + 1,
+        id: assistantId,
+      },
+    ])
     setQuestion('')
     try {
       setIsAIThinking(true)
       const response = await askAI({
         data: { kbid: knowledge.id, question: q },
       })
-      setChats((prev) => [...prev, { role: 'Assistant', response }])
-    } catch (error) {
-      console.log(error)
+      setChats((prev) =>
+        prev.map((c) => {
+          if (c.role !== 'Assistant') return c
+          if (c.status !== 'pending') return c
+          if (c.id !== assistantId) return c
+          const done: AssistantDoneChat = {
+            id: assistantId,
+            role: 'Assistant',
+            status: 'done',
+            createdAt: c.createdAt,
+            response,
+          }
+          return done
+        }),
+      )
+    } catch (err) {
+      console.log(err)
+      const message =
+        err instanceof Error ? err.message : 'Something went wrong'
+      setChats((prev) =>
+        prev.map((c) => {
+          if (c.role !== 'Assistant') return c
+          if (c.status !== 'pending') return c
+          if (c.id !== assistantId) return c
+
+          const errored: AssistantErrorChat = {
+            id: assistantId,
+            role: 'Assistant',
+            status: 'error',
+            createdAt: c.createdAt,
+            errorMessage: message,
+          }
+          return errored
+        }),
+      )
     } finally {
       setIsAIThinking(false)
     }
@@ -86,15 +153,31 @@ function App() {
       <div className="flex flex-col h-screen">
         <div className="chats flex-1 overflow-scroll no-scrollbar flex flex-col gap-4 my-4">
           {chats.length > 0 &&
-            chats.map((chat, index) => {
+            chats.map((chat) => {
               if (chat.role === 'User') {
-                return <UserChat prompt={chat.prompt} key={index} />
-              } else {
-                if (isAIThinking) {
-                  return <span>...</span>
-                }
-                return <AssistantChat response={chat.response} key={index} />
+                return <UserChat key={chat.id} prompt={chat.prompt} />
               }
+              // Assistant
+              if (chat.status === 'pending') {
+                return <AssistantChat key={chat.id} status="pending" />
+              }
+              if (chat.status === 'error') {
+                return (
+                  <AssistantChat
+                    key={chat.id}
+                    status="error"
+                    errorMessage="Something went wrong"
+                  />
+                )
+              }
+              // status === 'done'
+              return (
+                <AssistantChat
+                  key={chat.id}
+                  status="done"
+                  response={chat.response}
+                />
+              )
             })}
         </div>
         <div className="mb-4">
@@ -116,7 +199,10 @@ function App() {
                 className="h-full border-none focus-visible:ring-0"
               />
             </div>
-            <Button className="h-12 rounded-l-none flex items-center justify-center">
+            <Button
+              disabled={isAIThinking}
+              className="h-12 rounded-l-none flex items-center justify-center"
+            >
               Send
             </Button>
           </form>

@@ -1,17 +1,37 @@
-import { AIChat } from '@/routes'
+import { AssistantDoneChat } from '@/routes'
 
-type AssistantChatProps = {
-  response: AIChat['response']
-}
+type AssistantBubbleProps =
+  | {
+      status: 'pending'
+    }
+  | {
+      status: 'done'
+      response: AssistantDoneChat['response']
+    }
+  | {
+      status: 'error'
+      errorMessage: string
+    }
 
-const AssistantChat = ({ response }: AssistantChatProps) => {
+const AssistantChat = (props: AssistantBubbleProps) => {
+  if (props.status === 'pending') {
+    return <div>Thinking…</div>
+  }
+  if (props.status === 'error') {
+    return (
+      <div className="assistant-bubble error">
+        <p>{props.errorMessage}</p>
+        <button>Retry</button>
+      </div>
+    )
+  }
   return (
-    <div className="md:max-w-2xl w-full  bg-gray-200 p-4 rounded-xl">
+    <div className="md:max-w-2xl w-full   p-4 rounded-xl">
       <p className="font-semibold">AI</p>
-      <p className="text-sm">{response.answer}</p>
-      <div className="flex justify-end">
+      <p className="text-sm">{props.response.answer}</p>
+      <div className="flex justify-start">
         <p>
-          {response.citations.map((c, i) => (
+          {props.response.citations.map((c, i) => (
             <span key={i}>{`[${c}]`}</span>
           ))}
         </p>
