@@ -10,33 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SourcesIndexRouteImport } from './routes/sources/index'
+import { Route as SourcesKbidPreviewRouteImport } from './routes/sources/$kbid/preview'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SourcesIndexRoute = SourcesIndexRouteImport.update({
+  id: '/sources/',
+  path: '/sources/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SourcesKbidPreviewRoute = SourcesKbidPreviewRouteImport.update({
+  id: '/sources/$kbid/preview',
+  path: '/sources/$kbid/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/sources/': typeof SourcesIndexRoute
+  '/sources/$kbid/preview': typeof SourcesKbidPreviewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/sources': typeof SourcesIndexRoute
+  '/sources/$kbid/preview': typeof SourcesKbidPreviewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/sources/': typeof SourcesIndexRoute
+  '/sources/$kbid/preview': typeof SourcesKbidPreviewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/sources/' | '/sources/$kbid/preview'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/sources' | '/sources/$kbid/preview'
+  id: '__root__' | '/' | '/sources/' | '/sources/$kbid/preview'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SourcesIndexRoute: typeof SourcesIndexRoute
+  SourcesKbidPreviewRoute: typeof SourcesKbidPreviewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +68,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sources/': {
+      id: '/sources/'
+      path: '/sources'
+      fullPath: '/sources/'
+      preLoaderRoute: typeof SourcesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sources/$kbid/preview': {
+      id: '/sources/$kbid/preview'
+      path: '/sources/$kbid/preview'
+      fullPath: '/sources/$kbid/preview'
+      preLoaderRoute: typeof SourcesKbidPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SourcesIndexRoute: SourcesIndexRoute,
+  SourcesKbidPreviewRoute: SourcesKbidPreviewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

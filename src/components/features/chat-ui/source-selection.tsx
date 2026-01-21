@@ -5,10 +5,12 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Plus } from 'lucide-react'
 import { fetchKnowledgeBase } from '../../../db/dal'
+import { Link } from '@tanstack/react-router'
 
 type KBS = Awaited<ReturnType<typeof fetchKnowledgeBase>>
 
@@ -24,10 +26,13 @@ const SourceSelection = ({
   return (
     <DropdownMenu>
       <DropdownMenuContent className="w-56" align="start">
-        <DropdownMenuLabel>My Sources</DropdownMenuLabel>
+        {kbs.length > 0 && <DropdownMenuLabel>My Sources</DropdownMenuLabel>}
+
         <DropdownMenuGroup>
           {kbs.length === 0 ? (
-            <div>Please add knowledgebases</div>
+            <p className="text-center text-sm p-2">
+              You don't have any sources
+            </p>
           ) : (
             kbs.map((kb) => (
               <DropdownMenuItem
@@ -38,6 +43,17 @@ const SourceSelection = ({
               </DropdownMenuItem>
             ))
           )}
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem
+            asChild
+            className="flex items-center justify-center"
+          >
+            <Link to={`/sources`}>
+              Add <Plus />
+            </Link>
+          </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
       <DropdownMenuTrigger asChild>

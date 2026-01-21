@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { fetchKnowledgeBase } from '@/db/dal'
 import { askAI } from '@/lib/ai'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { MessageCircleX } from 'lucide-react'
 import { ChangeEvent, FormEvent, useState } from 'react'
 
@@ -166,6 +166,14 @@ function App() {
               <div className="text-center">
                 <p>Ask questions from the text you save.</p>
                 <p>Get grounded answers with sources you can verify.</p>
+                {kbs.length > 0 && (
+                  <Link
+                    className="inline-block mt-4 italic font-bold underline text-blue-600"
+                    to={`/sources`}
+                  >
+                    View all sources
+                  </Link>
+                )}
               </div>
             </div>
           )}
@@ -192,6 +200,7 @@ function App() {
                 <AssistantChat
                   key={chat.id}
                   status="done"
+                  kbid={knowledge?.id}
                   response={chat.response}
                 />
               )

@@ -1,4 +1,5 @@
 import { AssistantDoneChat } from '@/routes'
+import { Link } from '@tanstack/react-router'
 
 type AssistantBubbleProps =
   | {
@@ -7,6 +8,7 @@ type AssistantBubbleProps =
   | {
       status: 'done'
       response: AssistantDoneChat['response']
+      kbid?: string
     }
   | {
       status: 'error'
@@ -32,7 +34,12 @@ const AssistantChat = (props: AssistantBubbleProps) => {
       <div className="flex justify-start">
         <p>
           {props.response.citations.map((c, i) => (
-            <span key={i}>{`[${c}]`}</span>
+            <Link
+              search={{ chunkIndex: c }}
+              params={{ kbid: props.kbid! }}
+              to={`/sources/$kbid/preview`}
+              key={i}
+            >{`[${c}]`}</Link>
           ))}
         </p>
       </div>

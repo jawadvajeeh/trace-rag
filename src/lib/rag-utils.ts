@@ -102,3 +102,12 @@ export function extractInlineCitations(answer: string) {
   while ((m = re.exec(answer)) !== null) found.add(Number(m[1]))
   return [...found].sort((a, b) => a - b)
 }
+
+export function chunkByParagraph(rawText: string): string[] {
+  // Normalize newlines and split on blank lines (one or more)
+  return rawText
+    .replace(/\r\n/g, '\n')
+    .split(/\n\s*\n+/g)
+    .map((p) => p.trim())
+    .filter(Boolean)
+}
